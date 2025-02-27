@@ -47,7 +47,7 @@ spec:
           serviceAccountName: overtime-service-account
           containers:
             - name: overtime-automation
-              image: matesousa/overtime-script:v7
+              image: matesousa/overtime-script:v20250227.025429
               env:
                 - name: NAMESPACE
                   valueFrom:
