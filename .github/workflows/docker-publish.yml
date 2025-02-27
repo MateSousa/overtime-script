@@ -2,32 +2,35 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: read
+      packages: write
+      actions: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
+
       - name: Set version tag
         id: tag
         run: echo "tag=v$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_OUTPUT
-      
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -36,11 +39,11 @@ jobs:
           tags: matesousa/overtime-script:latest,matesousa/overtime-script:${{ steps.tag.outputs.tag }}
           cache-from: type=registry,ref=matesousa/overtime-script:buildcache
           cache-to: type=registry,ref=matesousa/overtime-script:buildcache,mode=max
-      
+
       - name: Update K8s manifest
         run: |
           sed -i "s|image: matesousa/overtime-script:.*|image: matesousa/overtime-script:${{ steps.tag.outputs.tag }}|" k8s/manifests.yaml
-      
+
       - name: Commit and push changes
         run: |
           git config --global user.name 'github-actions'
@@ -48,3 +51,4 @@ jobs:
           git add k8s/manifests.yaml
           git commit -m "Update image tag to ${{ steps.tag.outputs.tag }}"
           git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref }}
+
