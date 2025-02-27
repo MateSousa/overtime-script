@@ -47,4 +47,4 @@ jobs:
           git config --global user.email 'github-actions@github.com'
           git add k8s/manifests.yaml
           git commit -m "Update image tag to ${{ steps.tag.outputs.tag }}"
-          git push
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref }}
