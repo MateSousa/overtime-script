@@ -11,9 +11,8 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
-      actions: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -45,10 +44,8 @@ jobs:
           sed -i "s|image: matesousa/overtime-script:.*|image: matesousa/overtime-script:${{ steps.tag.outputs.tag }}|" k8s/manifests.yaml
 
       - name: Commit and push changes
-        run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@github.com'
-          git add k8s/manifests.yaml
-          git commit -m "Update image tag to ${{ steps.tag.outputs.tag }}"
-          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref }}
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update image tag to ${{ steps.tag.outputs.tag }}"
+          file_pattern: 'k8s/manifests.yaml'
 
